@@ -1,4 +1,4 @@
-package com.example.orderlist.model;
+package com.example.product.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;

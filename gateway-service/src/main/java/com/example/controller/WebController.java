@@ -18,4 +18,9 @@ public class WebController {
         return "orderlist";   // templates/orderlist.html
     }
 
+    @GetMapping("/products")
+    public String productsPage() {
+        return "products";
+    }
+
 } 

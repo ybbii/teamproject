@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 목록</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+<nav class="navbar navbar-light bg-light mb-4">
+    <a href="/" class="navbar-brand">MSA Demo</a>
+    <div style="float: right;">
+        <a href="/products" class="btn btn-primary me-2">재고 목록</a>
+        <a href="/carts" class="btn btn-primary me-2">장바구니</a>
+        <a href="/orderlist" class="btn btn-primary">발주 내역</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="card">
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3">
+            <h2>상품 목록</h2>
+        </div>
+
+        <div class="table-responsive p-3">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>상품명</th>
+                    <th>가격</th>
+                    <th>장바구니</th>
+                </tr>
+                </thead>
+                <tbody id="productListTableBody">
+                <!-- JS로 동적 렌더링 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/products.js}"></script>
+</body>
+</html>

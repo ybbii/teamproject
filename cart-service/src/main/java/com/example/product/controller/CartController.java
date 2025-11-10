@@ -1,7 +1,7 @@
-package com.example.orderlist.controller;
+package com.example.product.controller;
 
-import com.example.orderlist.model.CartItem;
-import com.example.orderlist.repository.CartItemRepository;
+import com.example.product.model.CartItem;
+import com.example.product.repository.CartItemRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,4 +55,14 @@ public class CartController {
         cartItemRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    // ✅ 장바구니에 상품 담기 (productId 경로로 받음)
+    @PostMapping("/{productId}")
+    public CartItem addItemByProductId(@PathVariable Long productId) {
+        CartItem newItem = new CartItem();
+        newItem.setProductId(productId);
+        newItem.setQuantity(1); // 기본 수량 1
+        return cartItemRepository.save(newItem);
+    }
+
 }
