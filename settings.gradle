@@ -1,0 +1,6 @@
+rootProject.name = 'TeamPro'
+
+include 'cart-service'
+include 'orderlist-service'
+include 'gateway-service'
+include 'eureka-server'
