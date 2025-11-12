@@ -3,9 +3,10 @@ package com.example.product.controller;
 import com.example.product.model.Product;
 import com.example.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -15,12 +16,24 @@ public class ProductController {
     private final ProductRepository productRepository;
 
     // ============================
-    // 🔹 상품 전체 조회
+    // 🔹 상품 전체 조회 (페이징)
     // ============================
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public Page<Product> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        if (keyword != null && !keyword.isEmpty()) {
+            return productRepository.findByNameContainingIgnoreCase(keyword, pageable); // ❌ 여기 수정
+        } else {
+            return productRepository.findAll(pageable);
+        }
     }
+
+
 
     // ============================
     // 🔹 단일 상품 조회

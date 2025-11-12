@@ -1,8 +1,10 @@
 package com.example.product.repository;
 
 import com.example.product.model.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    Product getProductById(Long id);
+    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }

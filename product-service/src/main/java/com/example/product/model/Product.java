@@ -13,5 +13,13 @@ public class Product {
 
     private String name;
     private Double price;
-
+    private String size;
+    private String calorie;
+    private String description;
+    private String allergy;
+    private String fat;
+    private String sugar;
+    private String sodium;
+    private String protein;
+    private String caffeine;
 }

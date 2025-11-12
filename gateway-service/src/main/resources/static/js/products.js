@@ -1,43 +1,132 @@
+let allProducts = []; // 전체 상품 목록 저장
+let currentPage = 0;  // 현재 페이지
+const pageSize = 10;  // 한 페이지당 표시할 상품 수
+
+
 document.addEventListener('DOMContentLoaded', function() {
     loadProductList();
+
+    // 검색 버튼 클릭
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+        filterProducts(keyword);
+    });
+
+    // 엔터 입력 시 검색
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            const keyword = e.target.value.trim().toLowerCase();
+            filterProducts(keyword);
+        }
+    });
 });
+
 
 // ============================
 // 🔹 상품 목록 조회
 // ============================
-async function loadProductList() {
+async function loadProductList(page = 0) {
     try {
-        const response = await fetch('/api/products');
+        const response = await fetch(`/api/products?page=${page}&size=${pageSize}`);
         if (!response.ok) throw new Error('상품 목록 불러오기 실패');
-        const products = await response.json();
 
-        const tbody = document.getElementById('productListTableBody');
-        tbody.innerHTML = '';
-
-        products.forEach(product => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${product.id}</td>
-                <td>${product.name}</td>
-                <td>${product.price.toLocaleString()} 원</td>
-                <td>
-                <div class="input-group input-group-sm" style="width:150px;">
-                <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(${product.id}, -1)">−</button>
-                <input type="text" id="qty-${product.id}" class="form-control text-center" value="1" readonly>
-                <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(${product.id}, 1)">+</button>
-                <button class="btn btn-success ms-2" onclick="addToCart(${product.id})">담기</button>
-                </div>
-
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
+        const data = await response.json();
+        allProducts = data.content; // 현재 페이지 상품만 저장
+        renderProducts(allProducts); // 테이블 렌더링
+        renderPagination(data.totalPages, page); // 페이지 버튼 렌더링
     } catch (error) {
         console.error('상품 목록 조회 오류:', error);
         alert('상품 목록을 불러오는데 실패했습니다.');
     }
 }
+
+// ============================
+// 🔹 페이징 버튼 렌더링
+// ============================
+function renderPagination(totalPages, page) {
+    const paginationDiv = document.getElementById('pagination');
+    if (!paginationDiv) return;
+
+    paginationDiv.innerHTML = '';
+
+    for (let i = 0; i < totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i + 1;
+        btn.className = i === page ? 'btn btn-primary me-1' : 'btn btn-outline-primary me-1';
+        btn.onclick = () => loadProductList(i);
+        paginationDiv.appendChild(btn);
+    }
+}
+
+
+// 테이블 렌더링 함수
+function renderProducts(products) {
+    const tbody = document.getElementById('productListTableBody');
+    tbody.innerHTML = ''; // 초기화
+
+    products.forEach(product => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${product.id}</td>
+            <td>
+                <a href="#" onclick="showProductDetail(${product.id})">${product.name}</a>
+            </td>
+            <td>${product.price.toLocaleString()} 원</td>
+            <td>
+                <div class="input-group input-group-sm" style="width:150px;">
+                    <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(${product.id}, -1)">−</button>
+                    <input type="text" id="qty-${product.id}" class="form-control text-center" value="1" readonly>
+                    <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(${product.id}, 1)">+</button>
+                    <button class="btn btn-success ms-2" onclick="addToCart(${product.id})">담기</button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// 상세보기 모달 함수
+function showProductDetail(productId) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+
+    // 모달 내용 채우기
+    document.getElementById('modalProductName').textContent = product.name;
+    document.getElementById('modalProductSize').textContent = product.size || '-';
+    document.getElementById('modalProductCalorie').textContent = product.calorie || '-';
+    document.getElementById('modalProductDescription').textContent = product.description || '-';
+    document.getElementById('modalProductAllergy').textContent = product.allergy || '-';
+    document.getElementById('modalProductFat').textContent = product.fat || '-';
+    document.getElementById('modalProductSugar').textContent = product.sugar || '-';
+    document.getElementById('modalProductSodium').textContent = product.sodium || '-';
+    document.getElementById('modalProductProtein').textContent = product.protein || '-';
+    document.getElementById('modalProductCaffeine').textContent = product.caffeine || '-';
+
+    // 모달 띄우기
+    const modal = new bootstrap.Modal(document.getElementById('productDetailModal'));
+    modal.show();
+}
+
+
+// 🔹 검색 필터링 함수
+async function filterProducts(keyword) {
+    const page = 0; // 검색하면 항상 0페이지부터
+    const url = keyword
+        ? `/api/products?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${pageSize}`
+        : `/api/products?page=${page}&size=${pageSize}`;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('검색 실패');
+
+        const data = await response.json();
+        renderProducts(data.content);          // 테이블 렌더링
+        renderPagination(data.totalPages, page); // 페이지 버튼 렌더링
+    } catch (error) {
+        console.error('상품 검색 오류:', error);
+    }
+}
+
 
 function changeQuantity(productId, delta) {
     const input = document.getElementById(`qty-${productId}`);
