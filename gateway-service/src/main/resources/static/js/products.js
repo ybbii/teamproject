@@ -21,7 +21,10 @@ async function loadProductList() {
                 <td>${product.name}</td>
                 <td>${product.price.toLocaleString()} 원</td>
                 <td>
-                    <button class="btn btn-sm btn-success" onclick="addToCart(${product.id})">장바구니 담기</button>
+                    <div class="input-group input-group-sm" style="width:140px;">
+                        <input type="number" id="qty-${product.id}" class="form-control" value="1" min="1">
+                        <button class="btn btn-success" onclick="addToCart(${product.id})">담기</button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -34,40 +37,24 @@ async function loadProductList() {
 }
 
 // ============================
-// 🔹 장바구니 담기
+// 🔹 장바구니 담기 (수량 포함)
 // ============================
 async function addToCart(productId) {
+    const quantityInput = document.getElementById(`qty-${productId}`);
+    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+
     try {
-        // 장바구니에 담을 데이터 구성
-        const cartItem = {
-            productId: productId,
-            productName: '',  // product-service에서 받아오든, JS에서 미리 이름 가져오기
-            quantity: 1,
-            price: 0           // product-service에서 가격 가져오기
-        };
-
-        // product-service에서 제품 정보 가져오기
-        const productResponse = await fetch(`/api/products/${productId}`);
-        if (!productResponse.ok) throw new Error('상품 정보를 가져오는데 실패했습니다.');
-        const product = await productResponse.json();
-
-        cartItem.productName = product.name;
-        cartItem.price = product.price;
-
-        // POST 요청으로 장바구니 담기
-        const response = await fetch('/api/carts', {
+        const response = await fetch(`/api/carts/${productId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(cartItem)
+            body: JSON.stringify({ quantity }) // ✅ 수량 전달
         });
 
         if (!response.ok) throw new Error('장바구니 담기 실패');
-
         alert('장바구니에 추가되었습니다.');
     } catch (error) {
         console.error('장바구니 담기 실패:', error);
         alert(error.message);
     }
 }
-
 

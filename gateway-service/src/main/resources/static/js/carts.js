@@ -1,17 +1,31 @@
 let itemModal;
 
-document.addEventListener('DOMContentLoaded', function() {
-    const itemModalElement = document.getElementById('itemModal');
-    if (itemModalElement) {
-        itemModal = new bootstrap.Modal(itemModalElement);
-    }
 
-    loadCartItems();
+/* ============================================
+   🔹 페이지 캐시(bfcache) 복원 시 장바구니 재로딩
+============================================ */
+window.addEventListener('pageshow', function(event) {
+    // event.persisted는 페이지가 bfcache에서 복원되었는지 알려줌
+    if (event.persisted) {
+        console.log('bfcache 복원 감지 → 장바구니 다시 로드');
+        loadCartItems().catch(err => console.error('pageshow reload failed', err));
+    }
 });
 
-// ============================
-// 장바구니 항목 전체 조회
-// ============================
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadCartItems();
+
+    // 🔹 Bootstrap 모달 초기화
+    const modalElement = document.getElementById('itemModal');
+    if (modalElement) {
+        itemModal = new bootstrap.Modal(modalElement);
+    }
+});
+
+/* ============================================
+   🔹 장바구니 전체 조회
+============================================ */
 async function loadCartItems() {
     try {
         const response = await fetch('/api/carts');
@@ -43,20 +57,50 @@ async function loadCartItems() {
         });
 
         document.getElementById('cartTotal').textContent = totalSum.toLocaleString();
+
     } catch (error) {
         console.error('장바구니 목록을 불러오는데 실패했습니다:', error);
         alert('장바구니 목록을 불러오는데 실패했습니다.');
     }
 }
 
-// ============================
-// 상품 추가 모달 열기
-// ============================
-function showAddItemModal() {
-    document.getElementById('itemForm').reset();
-    document.getElementById('itemId').value = '';
-    document.getElementById('modalItemTitle').textContent = '상품 추가';
-    itemModal.show();
+/* ============================================
+   🔹 상품 수정 모달 열기
+============================================ */
+async function editCartItem(id) {
+    try {
+        const response = await fetch('/api/carts');
+        if (!response.ok) throw new Error('장바구니 조회 실패');
+        const items = await response.json();
+
+        const item = items.find(i => i.id === id);
+        if (!item) {
+            alert('상품을 찾을 수 없습니다.');
+            return;
+        }
+
+        document.getElementById('modalItemTitle').textContent = '상품 수정';
+        // 한 줄씩 바로 value 설정 + 수정 불가 항목 readonly
+        ['productId','productName','price'].forEach(key => {
+            const el = document.getElementById(key);
+            el.value = item[key];
+            el.readOnly = true;
+        });
+
+        // itemId는 hidden input이라 따로 세팅
+        document.getElementById('itemId').value = item.id;
+
+        // 수량은 수정 가능
+        const quantityInput = document.getElementById('quantity');
+        quantityInput.value = item.quantity;
+        quantityInput.readOnly = false;
+
+        itemModal.show();
+
+    } catch (error) {
+        console.error('상품 정보를 불러오는데 실패했습니다:', error);
+        alert('상품 정보를 불러오는데 실패했습니다.');
+    }
 }
 
 // ============================
@@ -91,37 +135,10 @@ async function saveCartItem() {
     }
 }
 
-// ============================
-// 상품 수정 모달 열기
-// ============================
-async function editCartItem(id) {
-    try {
-        const response = await fetch('/api/carts');
-        const items = await response.json();
-        const item = items.find(i => i.id === id);
 
-        if (!item) {
-            alert('상품을 찾을 수 없습니다.');
-            return;
-        }
-
-        document.getElementById('modalItemTitle').textContent = '상품 수정';
-        document.getElementById('itemId').value = item.id;
-        document.getElementById('productId').value = item.productId;
-        document.getElementById('productName').value = item.productName;
-        document.getElementById('quantity').value = item.quantity;
-        document.getElementById('price').value = item.price;
-
-        itemModal.show();
-    } catch (error) {
-        console.error('상품 정보를 불러오는데 실패했습니다:', error);
-        alert('상품 정보를 불러오는데 실패했습니다.');
-    }
-}
-
-// ============================
-// 상품 삭제
-// ============================
+/* ============================================
+   🔹 상품 삭제
+============================================ */
 async function deleteCartItem(id) {
     if (!confirm('정말 삭제하시겠습니까?')) return;
 
@@ -129,20 +146,20 @@ async function deleteCartItem(id) {
         const response = await fetch(`/api/carts/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error('삭제 실패');
 
-        loadCartItems();
         alert('삭제되었습니다.');
+        loadCartItems();
+
     } catch (error) {
         console.error('삭제 실패:', error);
         alert('삭제에 실패했습니다.');
     }
 }
 
-// ============================
-// 발주하기
-// ============================
+/* ============================================
+   🔹 발주하기
+============================================ */
 async function orderItems() {
     try {
-        // 1. 장바구니 목록 불러오기
         const response = await fetch('/api/carts');
         if (!response.ok) throw new Error('장바구니 조회 실패');
         const items = await response.json();
@@ -152,7 +169,6 @@ async function orderItems() {
             return;
         }
 
-        // 2. 발주 데이터 구성
         const orderRequest = {
             items: items.map(i => ({
                 productId: i.productId,
@@ -162,24 +178,36 @@ async function orderItems() {
             }))
         };
 
-        // 3. 발주 요청 보내기
+        // 발주 생성
         const orderResponse = await fetch('/api/orderlist', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderRequest)
         });
 
-        if (!orderResponse.ok) throw new Error('발주 요청 실패');
+        if (!orderResponse.ok) {
+            const text = await orderResponse.text().catch(() => null);
+            throw new Error('발주 요청 실패' + (text ? `: ${text}` : ''));
+        }
 
-        // 4. 발주 성공 → 장바구니 전체 삭제
-        await fetch('/api/carts/all', { method: 'DELETE' });
+        // 장바구니 전체 삭제 (서버에서 실제 삭제가 완료될 때까지 기다림)
+        const delResponse = await fetch('/api/carts/all', { method: 'DELETE' });
+        if (!delResponse.ok) {
+            const text = await delResponse.text().catch(() => null);
+            throw new Error('장바구니 전체 삭제 실패' + (text ? `: ${text}` : ''));
+        }
+
+        // 선택적: 삭제 반영된 화면을 확실히 갱신 (await 하여 완료 보장)
+        await loadCartItems();
 
         alert('발주가 완료되었습니다.');
-        loadCartItems();
 
-        window.location.href = "/orderlist";
+        // 발주내역 페이지로 이동
+        // replace를 쓰면 히스토리에 현재 페이지가 남지 않아 Back으로 돌아왔을 때 캐시 문제가 줄음
+        window.location.replace('/orderlist');
+
     } catch (error) {
         console.error('발주 실패:', error);
-        alert('발주 처리 중 오류가 발생했습니다.');
+        alert('발주 처리 중 오류가 발생했습니다. (콘솔 확인)');
     }
 }

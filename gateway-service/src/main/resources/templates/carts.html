@@ -18,11 +18,6 @@
 
 <div class="container">
     <div class="card">
-        <div class="d-flex justify-content-between align-items-center mb-4 p-3">
-            <h2>장바구니 관리</h2>
-            <button class="btn btn-primary" onclick="showAddItemModal()">상품 추가</button>
-        </div>
-
         <div class="table-responsive p-3">
             <table class="table table-striped">
                 <thead>
@@ -48,18 +43,19 @@
         </div>
 
         <div class="p-3 text-end">
+           <!-- <button class="btn btn-danger me-2" onclick="clearCart()">전체 삭제</button> -->
             <button class="btn btn-success btn-lg" onclick="orderItems()">발주하기</button>
         </div>
     </div>
 </div>
 
-<!-- 상품 추가/수정 모달 -->
+<!-- 상품 수정 모달 -->
 <div class="modal fade" id="itemModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <!-- modalTitle을 modalItemTitle로 변경 -->
-                <h5 class="modal-title" id="modalItemTitle">상품 추가</h5>
+                <h5 class="modal-title" id="modalItemTitle">상품 수정</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -83,6 +79,7 @@
                     </div>
                 </form>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
                 <button type="button" class="btn btn-primary" onclick="saveCartItem()">저장</button>

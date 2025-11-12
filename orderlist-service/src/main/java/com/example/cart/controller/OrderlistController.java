@@ -1,10 +1,10 @@
-package com.example.product.controller;
+package com.example.cart.controller;
 
-import com.example.product.model.OrderRequest;
-import com.example.product.model.OrderResponse;
-import com.example.product.model.Orders;
-import com.example.product.model.OrderItem;
-import com.example.product.repository.OrdersRepository;
+import com.example.cart.model.OrderRequest;
+import com.example.cart.model.OrderResponse;
+import com.example.cart.model.Orders;
+import com.example.cart.model.OrderItem;
+import com.example.cart.repository.OrdersRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
