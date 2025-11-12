@@ -21,10 +21,13 @@ async function loadProductList() {
                 <td>${product.name}</td>
                 <td>${product.price.toLocaleString()} 원</td>
                 <td>
-                    <div class="input-group input-group-sm" style="width:140px;">
-                        <input type="number" id="qty-${product.id}" class="form-control" value="1" min="1">
-                        <button class="btn btn-success" onclick="addToCart(${product.id})">담기</button>
-                    </div>
+                <div class="input-group input-group-sm" style="width:150px;">
+                <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(${product.id}, -1)">−</button>
+                <input type="text" id="qty-${product.id}" class="form-control text-center" value="1" readonly>
+                <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(${product.id}, 1)">+</button>
+                <button class="btn btn-success ms-2" onclick="addToCart(${product.id})">담기</button>
+                </div>
+
                 </td>
             `;
             tbody.appendChild(tr);
@@ -35,6 +38,15 @@ async function loadProductList() {
         alert('상품 목록을 불러오는데 실패했습니다.');
     }
 }
+
+function changeQuantity(productId, delta) {
+    const input = document.getElementById(`qty-${productId}`);
+    let current = parseInt(input.value);
+    current = isNaN(current) ? 1 : current + delta;
+    if (current < 1) current = 1; // 최소 1개 유지
+    input.value = current;
+}
+
 
 // ============================
 // 🔹 장바구니 담기 (수량 포함)
