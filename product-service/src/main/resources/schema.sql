@@ -12,5 +12,6 @@ CREATE TABLE PRODUCT (
         sugar VARCHAR(50),
         sodium VARCHAR(50),
         protein VARCHAR(50),
-        caffeine VARCHAR(50)
+        caffeine VARCHAR(50),
+        image_url VARCHAR(255)
 );

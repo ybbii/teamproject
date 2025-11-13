@@ -22,4 +22,5 @@ public class Product {
     private String sodium;
     private String protein;
     private String caffeine;
+    private String imageUrl;
 }

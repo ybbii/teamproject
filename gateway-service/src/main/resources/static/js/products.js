@@ -21,8 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    const confirmBtn = document.getElementById('confirmOrderBtn');
-    confirmBtn.addEventListener('click', async function() {
+    document.getElementById('confirmOrderBtn').addEventListener('click', async () => {
         if (!pendingOrder) return;
 
         try {
@@ -31,20 +30,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(pendingOrder)
             });
-
             if (!response.ok) throw new Error('주문 요청 실패');
-
-            alert('주문이 완료되었습니다. 발주 내역 페이지로 이동합니다.');
+            alert('주문 완료! 발주 내역 페이지로 이동합니다.');
             window.location.href = '/orderlist';
-        } catch (error) {
-            console.error('바로 주문 실패:', error);
-            alert('주문 처리 중 오류가 발생했습니다.');
+        } catch (err) {
+            console.error(err);
+            alert('주문 중 오류 발생');
         }
 
-        pendingOrder = null; // 초기화
-        const modalEl = document.getElementById('confirmOrderModal');
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        modalInstance.hide(); // 모달 닫기
+        pendingOrder = null;
+        bootstrap.Modal.getInstance(document.getElementById('confirmOrderModal'))?.hide();
     });
 });
 
@@ -61,7 +56,6 @@ async function loadProductList(page = 0) {
         allProducts = data.content; // 현재 페이지 상품만 저장
         currentPage = page;
         renderProducts(allProducts); // 테이블 렌더링
-        renderPagination(data.totalPages, page); // 페이지 버튼 렌더링
         renderPagination(data.totalPages, currentPage);
     } catch (error) {
         console.error('상품 목록 조회 오류:', error);
@@ -97,7 +91,8 @@ function renderProducts(products) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${product.id}</td>
-            <td>
+            <td style="display:flex; align-items:center; gap:10px;">
+                <img src="${product.imageUrl}" alt="${product.name}" width="60" height="60">
                 <a href="#" onclick="showProductDetail(${product.id})">${product.name}</a>
             </td>
             <td>${product.price.toLocaleString()} 원</td>
@@ -150,6 +145,7 @@ function showProductDetail(productId) {
     if (!product) return;
 
     // 모달 내용 채우기
+    document.getElementById('modalProductImage').src = product.imageUrl;
     document.getElementById('modalProductName').textContent = product.name;
     document.getElementById('modalProductSize').textContent = product.size || '-';
     document.getElementById('modalProductCalorie').textContent = product.calorie || '-';
